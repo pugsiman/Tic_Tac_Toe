@@ -3,14 +3,15 @@ module TicTacToe
 	attr_accessor :board
 	
 		def initialize
-			@board = [1,2,3,4,5,6,7,8,9]
-			@run = true
+			@board = (1..9).to_a
+			@run
 		end
 		
 		def display_board
 			n = 0
+			b = @board
 			3.times do
-				puts @board[n].to_s + " " + @board[n+1].to_s + " " + @board[n+2].to_s
+				puts b[n].to_s + " " + b[n+1].to_s + " " + b[n+2].to_s
 				n += 3
 			end
 			
