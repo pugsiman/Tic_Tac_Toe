@@ -44,8 +44,7 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					@running = false
-					return
+					return @running = false
 				end
 				puts "Position can only be a number, silly."
 				puts "Try again or type EXIT to, well, exit."
@@ -79,8 +78,7 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					@running = false
-					return
+					return @running = false
 				end
 				puts "Position can only be a number, silly."
 				puts "Try again or type EXIT to, well, exit."
