@@ -94,20 +94,17 @@ module TicTacToe
 		
 		def play
 			#until win_game == true
-				if @running;
-				else
+				if !@running
 					return
 				end
 			
 				x_turn
-				if @running;
-				else
+				if !@running
 					return
 				end
 				
 				o_turn
-				if @running;
-				else
+				if !@running
 					return
 				end
 				
