@@ -41,7 +41,7 @@ module TicTacToe
 						num
 					end
 				end
-			elsif position.is_a?(String) == true
+			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
 					@running = false
@@ -76,7 +76,7 @@ module TicTacToe
 					end
 				end
 
-			elsif position.is_a?(String) == true
+			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
 					@running = false
@@ -94,21 +94,12 @@ module TicTacToe
 		
 		def play
 			#until win_game == true
-				if !@running
-					return
-				end
-			
-				x_turn
-				if !@running
-					return
-				end
-				
-				o_turn
-				if !@running
-					return
-				end
-				
-				display_board
+			return if !@running
+			x_turn
+			return if !@running			
+			o_turn
+			return if !@running
+			display_board
 			#end
 		end
 		
