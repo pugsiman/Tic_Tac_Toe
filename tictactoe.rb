@@ -44,7 +44,7 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					#using return for a special case of both declaring @running = false, and an early breakout.
+					#using return for a special case of both declaring @exit = true, and an early breakout.
 					return @exit = true
 				end
 				puts "Position can only be a number, silly."
@@ -79,7 +79,7 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					#using return for a special case of both declaring @running = false, and an early breakout.
+					#using return for a special case of both declaring @exit = true, and an early breakout.
 					return @exit = true
 				end
 				puts "Position can only be a number, silly."
