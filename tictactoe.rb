@@ -7,7 +7,7 @@ end
 
 module TicTacToe
 	class Board
-		attr_reader :board
+		
 		def initialize
 			@board = (1..9).to_a
 			@running = true
@@ -117,10 +117,10 @@ module TicTacToe
 		end
 		
 		def draw?
-			board.all? { |all| all.is_a? String}
+			@board.all? { |all| all.is_a? String}
 		end
 	
-		def result
+		def result?
 			if win_game?
 			  display_board
 			  puts "Game Over!"
@@ -136,11 +136,11 @@ module TicTacToe
 			until !@running
 				x_turn
 				break if @exit
-				result
+				result?
 				break if !@running
 				o_turn
 				break if @exit
-				result
+				result?
 			end
 		end
 		
