@@ -7,11 +7,11 @@ end
 
 module TicTacToe
 	class Board
-	#attr_accessor :board
-	
+		attr_reader :board
 		def initialize
 			@board = (1..9).to_a
 			@running = true
+			@exit = false
 		end
 		
 		def display_board
@@ -44,7 +44,8 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					return @running = false
+					#using return for a special case of both declaring @running = false, and an early breakout.
+					return @exit = true
 				end
 				puts "Position can only be a number, silly."
 				puts "Try again or type EXIT to, well, exit."
@@ -78,7 +79,8 @@ module TicTacToe
 			elsif position.is_a?(String)
 				if position.downcase == "exit"
 					puts "Wow, rude. Bye."
-					return @running = false
+					#using return for a special case of both declaring @running = false, and an early breakout.
+					return @exit = true
 				end
 				puts "Position can only be a number, silly."
 				puts "Try again or type EXIT to, well, exit."
@@ -90,23 +92,62 @@ module TicTacToe
 			end
 		end
 		
-		def play
-			#until win_game == true
-			return if !@running
-			x_turn
-			return if !@running			
-			o_turn
-			return if !@running
-			display_board
-			#end
+		def win_game?
+			b = @board
+			# horizontal win
+			if  (
+				(b[0..2].count("X") == 3 || b[0..2].count("O") == 3) ||
+				(b[3..5].count("X") == 3 || b[3..5].count("O") == 3) ||
+				(b[6..8].count("X") == 3 || b[6..8].count("O") == 3)
+			) then return true
+			# vertical win
+			elsif (
+				(b.values_at(0,3,6).count("X") == 3 || b.values_at(0,3,6).count("O") == 3) ||
+				(b.values_at(1,4,7).count("X") == 3 || b.values_at(1,4,7).count("O") == 3) ||
+				(b.values_at(2,5,8).count("X") == 3 || b.values_at(2,5,8).count("O") == 3)
+			) then return true
+			# diagonal win
+			elsif (
+				(b.values_at(0,4,8).count("X") == 3 || b.values_at(0,4,8).count("O") == 3) ||
+				(b.values_at(2,4,6).count("X") == 3 || b.values_at(2,4,6).count("O") == 3)
+			) then return true
+			else
+				return false
+			end
 		end
 		
-		def win_game
-			false
+		def draw?
+			board.all? { |all| all.is_a? String}
 		end
+	
+		def result
+			if win_game?
+			  display_board
+			  puts "Game Over!"
+			  @running = false
+			elsif draw?
+			  display_board
+			  puts "Tie!"
+			  @running = false
+			end
+		end
+  
+		def game_progress
+			until !@running
+				x_turn
+				break if @exit
+				result
+				break if !@running
+				o_turn
+				break if @exit
+				result
+			end
+		end
+		
 	end
 end
 
 include TicTacToe
 match = Board.new
-match.play
+
+match.game_progress
