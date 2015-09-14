@@ -6,7 +6,7 @@ class String
 end
 
 module TicTacToe
-	class Board
+	class Game
 		
 		def initialize
 			@board = (1..9).to_a
@@ -17,10 +17,15 @@ module TicTacToe
 		def display_board
 			n = 0
 			b = @board
+			
+			puts ""
+			puts " -----------"
 			3.times do
-				puts b[n].to_s + " " + b[n+1].to_s + " " + b[n+2].to_s
+				puts "  " + b[n].to_s + " | " + b[n+1].to_s + " | " + b[n+2].to_s
+				puts " -----------"
 				n += 3
 			end
+			puts ""
 		end
 		
 		def x_turn
@@ -28,7 +33,7 @@ module TicTacToe
 			puts "Choose a number (1-9) to place your mark on, Player 1."
 			position = gets.chomp
 			
-			#using personal created method
+			#using personal created method to determine input
 			if position.is_integer?
 				position = position.to_i
 			end
@@ -123,11 +128,11 @@ module TicTacToe
 		def result?
 			if win_game?
 			  display_board
-			  puts "Game Over!"
+			  puts "Game Over"
 			  @running = false
 			elsif draw?
 			  display_board
-			  puts "Tie!"
+			  puts "Draw"
 			  @running = false
 			end
 		end
@@ -145,9 +150,71 @@ module TicTacToe
 		end
 		
 	end
+	
+	#AI component
+	class AI < Game
+		def try_sides
+			if @board[1].is_a? Fixnum
+				@board[1] = "O"
+				return finish_turn = true
+			elsif @board[3].is_a? Fixnum
+				@board[3] = "O"
+				return finish_turn = true
+			elsif @board[5].is_a? Fixnum
+				@board[5] = "O"
+				return finish_turn = true
+			elsif @board[7].is_a? Fixnum
+				@board[7] = "O"
+				return finish_turn = true
+			end
+		end
+		
+		def try_corners
+			if @board[0].is_a? Fixnum
+				@board[0] = "O"
+				return finish_turn = true
+			elsif @board[2].is_a? Fixnum
+				@board[2] = "O"
+				return finish_turn = true
+			elsif @board[6].is_a? Fixnum
+				@board[6] = "O"
+				return finish_turn = true
+			elsif @board[8].is_a? Fixnum
+				@board[8] = "O"
+				return finish_turn = true
+			end
+		end
+		
+		def ai_evaluation
+			finish_turn = false
+			for i in (0..9)
+				origin = @board[i]
+				@board[i] = "O" if !@board[i] == "X"
+				if win_game?
+					return finish_turn = true
+				else
+					@board[i] = origin
+				end
+			end
+			
+			while !finish_turn
+				for i in 0..9 
+					
+				end
+			end
+		end
+		
+		def ai_pacing
+			finish_turn = false
+			
+		end
+	end
 end
 
-include TicTacToe
-match = Board.new
+def play
+	include TicTacToe
+	match = Game.new
+	match.game_progress
+end
 
-match.game_progress
+play
