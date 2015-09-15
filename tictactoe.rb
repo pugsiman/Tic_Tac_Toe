@@ -32,69 +32,68 @@ module TicTacToe
       display_board
       puts "Choose a number (1-9) to place your mark on, Player 1."
       position = gets.chomp
-			
-			#using personal created method to determine input
-			if position.is_integer?
-				position = position.to_i
-			end
-			
-			if @board.include?(position)
-				@board.map! do |num|
-					if num == position
-						num = "X"
-					else
-						num
-					end
-				end
-			elsif position.is_a?(String)
-				if position.downcase == "exit"
-					puts "Wow, rude. Bye."
-					#using return for a special case of both declaring @exit = true, and an early breakout.
-					return @exit = true
-				end
-				puts "Position can only be a number, silly."
-				puts "Try again or type EXIT to, well, exit."
-				x_turn
-			else
-				puts "This position does not exist or already occupied, chief."
-				puts "Try again or type EXIT to, well, exit."
-				x_turn
-			end
-		end
+
+      #using personal created method to determine input
+      if position.is_integer?
+        position = position.to_i
+      end
+
+      if @board.include?(position)
+        @board.map! do |num|
+          if num == position
+            num = "X"
+          else
+            num
+          end
+        end
+      elsif position.is_a?(String)
+        if position.downcase == "exit"
+          puts "Wow, rude. Bye."
+          return @exit = true # return for a special case of both declaring and an early breakout.
+        end
+        puts "Position can only be a number, silly."
+        puts "Try again or type EXIT to, well, exit."
+        x_turn
+      else
+        puts "This position does not exist or already occupied, chief."
+        puts "Try again or type EXIT to, well, exit."
+        x_turn
+      end
+    end
 		
-		def o_turn
-			display_board
-			puts "Choose a number (1-9) to place your mark on, Player 2."
-			position = gets.chomp
-			
-			#using personal created method
-			if position.is_integer?
-				position = position.to_i
-			end
+    def o_turn
+      display_board
+      puts "Choose a number (1-9) to place your mark on, Player 2."
+      position = gets.chomp
+      
+      #using personal created method
+      if position.is_integer?
+        position = position.to_i
+      end
 
-			if @board.include?(position)
-				@board.map! do |num|
-					if num == position
-						num = "O"
-					else
-						num
-					end
-				end
+      if @board.include?(position)
+        @board.map! do |num|
+          if num == position
+            num = "O"
+          else
+            num
+          end
+        end
 
-			elsif position.is_a?(String)
-				if position.downcase == "exit"
-					puts "Wow, rude. Bye."
-					return @exit = true # return for a special case of both declaring and an early breakout.
-				end
-				puts "Position can only be a number, silly."
-				puts "Try again or type EXIT to, well, exit."
-				o_turn
-			else
-				puts "This position does not exist or already occupied, chief."
-				puts "Try again or type EXIT to, well, exit."
-				o_turn
-			end
-		end
+      elsif position.is_a?(String)
+        if position.downcase == "exit"
+          puts "Wow, rude. Bye."
+          return @exit = true # return for a special case of both declaring and an early breakout.
+        end
+        puts "Position can only be a number, silly."
+        puts "Try again or type EXIT to, well, exit."
+        o_turn
+      else
+        puts "This position does not exist or already occupied, chief."
+        puts "Try again or type EXIT to, well, exit."
+        o_turn
+      end
+    end
 		
 		def win_game?
 			b = @board
@@ -203,9 +202,9 @@ module TicTacToe
       if @board[4].is_a? String
         rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
       end
-		end
+    end
 		
-		def aigame_progress
+    def aigame_progress
       if rand > 0.3
         until !@running
           x_turn
