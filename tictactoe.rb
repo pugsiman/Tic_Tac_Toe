@@ -60,12 +60,12 @@ module TicTacToe
         x_turn
       end
     end
-		
+
     def o_turn
       display_board
       puts "Choose a number (1-9) to place your mark on, Player 2."
       position = gets.chomp
-      
+
       #using personal created method
       if position.is_integer?
         position = position.to_i
@@ -94,47 +94,47 @@ module TicTacToe
         o_turn
       end
     end
-		
+
 		def win_game?
-			b = @board
-			# horizontal win
-			if  (
-				(b[0..2].count("X") == 3 || b[0..2].count("O") == 3) ||
-				(b[3..5].count("X") == 3 || b[3..5].count("O") == 3) ||
-				(b[6..8].count("X") == 3 || b[6..8].count("O") == 3)
-			) then return true
-			# vertical win
-			elsif (
-				(b.values_at(0,3,6).count("X") == 3 || b.values_at(0,3,6).count("O") == 3) ||
-				(b.values_at(1,4,7).count("X") == 3 || b.values_at(1,4,7).count("O") == 3) ||
-				(b.values_at(2,5,8).count("X") == 3 || b.values_at(2,5,8).count("O") == 3)
-			) then return true
-			# diagonal win
-			elsif (
-				(b.values_at(0,4,8).count("X") == 3 || b.values_at(0,4,8).count("O") == 3) ||
-				(b.values_at(2,4,6).count("X") == 3 || b.values_at(2,4,6).count("O") == 3)
-			) then return true
-			else
-				return false
-			end
-		end
-		
-		def draw?
-			@board.all? {|all| all.is_a? String} #returns true if no one won by the end of the match.
-		end
-	
-		def result?
-			if win_game?
-			  display_board
-			  puts "Game Over"
-			  @running = false
-			elsif draw?
+      b = @board
+      # horizontal win
+      if(
+        (b[0..2].count("X") == 3 || b[0..2].count("O") == 3) ||
+        (b[3..5].count("X") == 3 || b[3..5].count("O") == 3) ||
+        (b[6..8].count("X") == 3 || b[6..8].count("O") == 3)
+      ) then return true
+      # vertical win
+      elsif (
+        (b.values_at(0,3,6).count("X") == 3 || b.values_at(0,3,6).count("O") == 3) ||
+        (b.values_at(1,4,7).count("X") == 3 || b.values_at(1,4,7).count("O") == 3) ||
+        (b.values_at(2,5,8).count("X") == 3 || b.values_at(2,5,8).count("O") == 3)
+      ) then return true
+      # diagonal win
+      elsif (
+        (b.values_at(0,4,8).count("X") == 3 || b.values_at(0,4,8).count("O") == 3) ||
+        (b.values_at(2,4,6).count("X") == 3 || b.values_at(2,4,6).count("O") == 3)
+      ) then return true
+      else
+        return false
+      end
+    end
+
+    def draw?
+      @board.all? {|all| all.is_a? String} #returns true if no one won by the end of the match.
+    end
+
+    def result?
+      if win_game?
+        display_board
+        puts "Game Over"
+        @running = false
+      elsif draw?
 			  display_board
 			  puts "Draw"
 			  @running = false
 			end
 		end
-  
+
 		def playergame_progress
 			until !@running
 				x_turn
@@ -146,9 +146,9 @@ module TicTacToe
 				result?
 			end
 		end
-		
+
 	end
-	
+
 	#AI components
 		def try_sides
 			if @board[1].is_a? Fixnum
@@ -161,7 +161,7 @@ module TicTacToe
 				return @board[7] = "O"
 			end
 		end
-		
+
 		def try_corners
 			if @board[0].is_a? Fixnum
 				return @board[0] = "O"
@@ -173,7 +173,7 @@ module TicTacToe
 				return @board[8] = "O"
 			end
 		end
-		
+
 		def ai_turn
       #first check if possible to win before human player.
       for i in (0...9)
@@ -181,7 +181,7 @@ module TicTacToe
         @board[i] = "O" if @board[i] != "X"
         win_game? ? return : @board[i] = origin #using return for early breakout if win_game? is true.
       end
-      
+
       #if not possible to win before player, check if possible to block player from winning.
       for i in (0...9)
         origin = @board[i]
@@ -197,13 +197,13 @@ module TicTacToe
       if !@board[4].is_a? String
         return @board[4] = "O"
       end
-      
+
       #if default is occupied, choose between corners or sides randomly.
       if @board[4].is_a? String
         rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
       end
     end
-		
+
     def aigame_progress
       if rand > 0.3
         until !@running
