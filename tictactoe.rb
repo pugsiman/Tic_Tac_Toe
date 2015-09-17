@@ -1,4 +1,5 @@
-#Adding a new method to the class String that allows to check if, for example, "2" is an integer "in disguise".
+# Adding a new method to the class String that allows to check if,
+# for example, "2" is an integer "in disguise".
 class String
   def is_integer?
     self.to_i.to_s == self
@@ -7,7 +8,6 @@ end
 
 module TicTacToe
   class Game
-
     def initialize
       @board = (1..9).to_a
       @running = true
@@ -18,55 +18,53 @@ module TicTacToe
       n = 0
       b = @board
 
-      puts ""
-      puts " -----------"
+      puts ''
+      puts ' -----------'
       3.times do
-        puts "  " + b[n].to_s + " | " + b[n+1].to_s + " | " + b[n+2].to_s
-        puts " -----------"
+        puts '  ' + b[n].to_s + ' | ' + b[n + 1].to_s + ' | ' + b[n + 2].to_s
+        puts ' -----------'
         n += 3
       end
-      puts ""
+      puts ''
     end
 
     def x_turn
       display_board
-      puts "Choose a number (1-9) to place your mark on, Player 1."
+      puts 'Choose a number (1-9) to place your mark on, Player 1.'
       position = gets.chomp
 
-      #using personal created method to determine input
-      if position.is_integer?
-        position = position.to_i
-      end
+      # using personal created method to determine input
+      position = position.to_i if position.is_integer?
 
       if @board.include?(position)
         @board.map! do |num|
           if num == position
-            num = "X"
+            'X'
           else
             num
           end
         end
       elsif position.is_a?(String)
-        if position.downcase == "exit"
-          puts "Wow, rude. Bye."
+        if position.downcase == 'exit'
+          puts 'Wow, rude. Bye.'
           return @exit = true # return for a special case of both declaring and an early breakout.
         end
-        puts "Position can only be a number, silly."
-        puts "Try again or type EXIT to, well, exit."
+        puts 'Position can only be a number, silly.'
+        puts 'Try again or type EXIT to, well, exit.'
         x_turn
       else
-        puts "This position does not exist or already occupied, chief."
-        puts "Try again or type EXIT to, well, exit."
+        puts 'This position does not exist or already occupied, chief.'
+        puts 'Try again or type EXIT to, well, exit.'
         x_turn
       end
     end
 
     def o_turn
       display_board
-      puts "Choose a number (1-9) to place your mark on, Player 2."
+      puts 'Choose a number (1-9) to place your mark on, Player 2.'
       position = gets.chomp
 
-      #using personal created method
+      # using personal created method
       if position.is_integer?
         position = position.to_i
       end
@@ -74,69 +72,70 @@ module TicTacToe
       if @board.include?(position)
         @board.map! do |num|
           if num == position
-            num = "O"
+            'O'
           else
             num
           end
         end
 
       elsif position.is_a?(String)
-        if position.downcase == "exit"
-          puts "Wow, rude. Bye."
-          return @exit = true # return for a special case of both declaring and an early breakout.
+        if position.downcase == 'exit'
+          puts 'Wow, rude. Bye.'
+          return @exit = true # return for a special case of both declaring,
+          # and an early breakout.
         end
-        puts "Position can only be a number, silly."
-        puts "Try again or type EXIT to, well, exit."
+        puts 'Position can only be a number, silly.'
+        puts 'Try again or type EXIT to, well, exit.'
         o_turn
       else
-        puts "This position does not exist or already occupied, chief."
-        puts "Try again or type EXIT to, well, exit."
+        puts 'This position does not exist or already occupied, chief.'
+        puts 'Try again or type EXIT to, well, exit.'
         o_turn
       end
     end
 
-		def win_game?
+    def win_game?
       b = @board
       # horizontal win
-      if(
-        (b[0..2].count("X") == 3 || b[0..2].count("O") == 3) ||
-        (b[3..5].count("X") == 3 || b[3..5].count("O") == 3) ||
-        (b[6..8].count("X") == 3 || b[6..8].count("O") == 3)
-      ) then return true
+      if
+        (b[0..2].count('X') == 3 || b[0..2].count('O') == 3) ||
+        (b[3..5].count('X') == 3 || b[3..5].count('O') == 3) ||
+        (b[6..8].count('X') == 3 || b[6..8].count('O') == 3)
+      then return true
       # vertical win
-      elsif (
-        (b.values_at(0,3,6).count("X") == 3 || b.values_at(0,3,6).count("O") == 3) ||
-        (b.values_at(1,4,7).count("X") == 3 || b.values_at(1,4,7).count("O") == 3) ||
-        (b.values_at(2,5,8).count("X") == 3 || b.values_at(2,5,8).count("O") == 3)
-      ) then return true
+      elsif
+        (b.values_at(0, 3, 6).count('X') == 3 || b.values_at(0, 3, 6).count('O') == 3) ||
+        (b.values_at(1, 4, 7).count('X') == 3 || b.values_at(1, 4, 7).count('O') == 3) ||
+        (b.values_at(2, 5, 8).count('X') == 3 || b.values_at(2, 5, 8).count('O') == 3)
+      then return true
       # diagonal win
-      elsif (
-        (b.values_at(0,4,8).count("X") == 3 || b.values_at(0,4,8).count("O") == 3) ||
-        (b.values_at(2,4,6).count("X") == 3 || b.values_at(2,4,6).count("O") == 3)
-      ) then return true
+      elsif
+        (b.values_at(0, 4, 8).count('X') == 3 || b.values_at(0, 4, 8).count('O') == 3) ||
+        (b.values_at(2, 4, 6).count('X') == 3 || b.values_at(2, 4, 6).count('O') == 3)
+      then return true
       else
         return false
       end
     end
 
     def draw?
-      @board.all? {|all| all.is_a? String} #returns true if no one won by the end of the match.
+      @board.all? { |all| all.is_a? String } # returns true if no one won by the end of the match.
     end
 
     def result?
       if win_game?
         display_board
-        puts "Game Over"
+        puts 'Game Over'
         @running = false
       elsif draw?
         display_board
-        puts "Draw"
+        puts 'Draw'
         @running = false
       end
     end
 
     def playergame_progress
-      until !@running
+      while @running
         x_turn
         break if @exit
         result?
@@ -148,106 +147,106 @@ module TicTacToe
     end
   end
 
-  #AI components
-    def try_sides
-      if @board[1].is_a? Fixnum
-        return @board[1] = "O"
-      elsif @board[3].is_a? Fixnum
-        return @board[3] = "O"
-      elsif @board[5].is_a? Fixnum
-        return @board[5] = "O"
-      elsif @board[7].is_a? Fixnum
-        return @board[7] = "O"
-      end
+  # AI components
+  def try_sides
+    if @board[1].is_a? Fixnum
+      return @board[1] = 'O'
+    elsif @board[3].is_a? Fixnum
+      return @board[3] = 'O'
+    elsif @board[5].is_a? Fixnum
+      return @board[5] = 'O'
+    elsif @board[7].is_a? Fixnum
+      return @board[7] = 'O'
+    end
+  end
+
+  def try_corners
+    if @board[0].is_a? Fixnum
+      return @board[0] = 'O'
+    elsif @board[2].is_a? Fixnum
+      return @board[2] = 'O'
+    elsif @board[6].is_a? Fixnum
+      return @board[6] = 'O'
+    elsif @board[8].is_a? Fixnum
+      return @board[8] = 'O'
+    end
+  end
+
+  def ai_turn
+    # first check if possible to win before human player.
+    for i in (0...9)
+      origin = @board[i]
+      @board[i] = 'O' if @board[i] != 'X'
+      win_game? ? return : @board[i] = origin # using return for early breakout if win_game? is true.
     end
 
-    def try_corners
-      if @board[0].is_a? Fixnum
-        return @board[0] = "O"
-      elsif @board[2].is_a? Fixnum
-        return @board[2] = "O"
-      elsif @board[6].is_a? Fixnum
-        return @board[6] = "O"
-      elsif @board[8].is_a? Fixnum
-        return @board[8] = "O"
-      end
-    end
-
-    def ai_turn
-      #first check if possible to win before human player.
-      for i in (0...9)
-        origin = @board[i]
-        @board[i] = "O" if @board[i] != "X"
-        win_game? ? return : @board[i] = origin #using return for early breakout if win_game? is true.
-      end
-
-      #if not possible to win before player, check if possible to block player from winning.
-      for i in (0...9)
-        origin = @board[i]
-        @board[i] = "X" if @board[i] != "O"
-        if win_game?
-          return @board[i] = "O" #if player can win that way, place it there before him.
-        else
-          @board[i] = origin
-        end
-      end
-
-      #if impossible to win nor block, default placement to center.
-      if !@board[4].is_a? String
-        return @board[4] = "O"
-      end
-
-      #if default is occupied, choose between corners or sides randomly.
-      if @board[4].is_a? String
-        rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
-      end
-    end
-
-    def aigame_progress
-      if rand > 0.3
-        until !@running
-          x_turn
-          break if @exit
-          result?
-          break if !@running
-          puts "Evil A.I. is scheming."
-          sleep(0.6)
-          puts "Evil A.I. is scheming.."
-          sleep(0.6)
-          puts "Evil A.I. is scheming..."
-          sleep(0.3)
-          ai_turn
-          result?
-        end
+    # if not possible to win before player, check if possible to block player from winning.
+    for i in (0...9)
+      origin = @board[i]
+      @board[i] = 'X' if @board[i] != 'O'
+      if win_game?
+        return @board[i] = 'O' # if player can win that way, place it there before him.
       else
-        until !@running
-          puts "Evil A.I. is scheming."
-          sleep(0.6)
-          puts "Evil A.I. is scheming.."
-          sleep(0.6)
-          puts "Evil A.I. is scheming..."
-          sleep(0.3)
-          ai_turn
-          result?
-          break if !@running
-          x_turn
-          break if @exit
-          result?
-        end
+        @board[i] = origin
       end
-		end
+    end
+
+    # if impossible to win nor block, default placement to center.
+    if !@board[4].is_a? String
+      return @board[4] = 'O'
+    end
+
+    # if default is occupied, choose between corners or sides randomly.
+    if @board[4].is_a? String
+      rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
+    end
+  end
+
+  def aigame_progress
+    if rand > 0.3
+      while @running
+        x_turn
+        break if @exit
+        result?
+        break if !@running
+        puts 'Evil A.I. is scheming.'
+        sleep(0.6)
+        puts 'Evil A.I. is scheming..'
+        sleep(0.6)
+        puts 'Evil A.I. is scheming...'
+        sleep(0.3)
+        ai_turn
+        result?
+      end
+    else
+      while @running
+        puts 'Evil A.I. is scheming.'
+        sleep(0.6)
+        puts 'Evil A.I. is scheming..'
+        sleep(0.6)
+        puts 'Evil A.I. is scheming...'
+        sleep(0.3)
+        ai_turn
+        result?
+        break if !@running
+        x_turn
+        break if @exit
+        result?
+      end
+    end
+  end
 end
 
 def play
   include TicTacToe
-	match = Game.new
-  puts "Welcome to Tic Tac Toe, enter 1 to play against another player, or 2 to play against an evil A.I."
-  puts "Type EXIT anytime to quit"
+  match = Game.new
+  puts 'Welcome to Tic Tac Toe, enter 1 to play against another player, or 2 to play against an evil A.I.'
+  puts 'Type EXIT anytime to quit'
   choice = gets.chomp.to_i
   case choice
-    when 1 then match.playergame_progress
-    when 2 then match.aigame_progress
-    else        puts "You silly, you."
+  when 1 then match.playergame_progress
+  when 2 then match.aigame_progress
+  else        puts 'You silly, you.'
   end
 end
 
