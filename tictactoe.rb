@@ -129,52 +129,51 @@ module TicTacToe
         puts "Game Over"
         @running = false
       elsif draw?
-			  display_board
-			  puts "Draw"
-			  @running = false
-			end
-		end
+        display_board
+        puts "Draw"
+        @running = false
+      end
+    end
 
-		def playergame_progress
-			until !@running
-				x_turn
-				break if @exit
-				result?
-				break if !@running
-				o_turn
-				break if @exit
-				result?
-			end
-		end
+    def playergame_progress
+      until !@running
+        x_turn
+        break if @exit
+        result?
+        break if !@running
+        o_turn
+        break if @exit
+        result?
+      end
+    end
+  end
 
-	end
+  #AI components
+    def try_sides
+      if @board[1].is_a? Fixnum
+        return @board[1] = "O"
+      elsif @board[3].is_a? Fixnum
+        return @board[3] = "O"
+      elsif @board[5].is_a? Fixnum
+        return @board[5] = "O"
+      elsif @board[7].is_a? Fixnum
+        return @board[7] = "O"
+      end
+    end
 
-	#AI components
-		def try_sides
-			if @board[1].is_a? Fixnum
-				return @board[1] = "O"
-			elsif @board[3].is_a? Fixnum
-				return @board[3] = "O"
-			elsif @board[5].is_a? Fixnum
-				return @board[5] = "O"
-			elsif @board[7].is_a? Fixnum
-				return @board[7] = "O"
-			end
-		end
+    def try_corners
+      if @board[0].is_a? Fixnum
+        return @board[0] = "O"
+      elsif @board[2].is_a? Fixnum
+        return @board[2] = "O"
+      elsif @board[6].is_a? Fixnum
+        return @board[6] = "O"
+      elsif @board[8].is_a? Fixnum
+        return @board[8] = "O"
+      end
+    end
 
-		def try_corners
-			if @board[0].is_a? Fixnum
-				return @board[0] = "O"
-			elsif @board[2].is_a? Fixnum
-				return @board[2] = "O"
-			elsif @board[6].is_a? Fixnum
-				return @board[6] = "O"
-			elsif @board[8].is_a? Fixnum
-				return @board[8] = "O"
-			end
-		end
-
-		def ai_turn
+    def ai_turn
       #first check if possible to win before human player.
       for i in (0...9)
         origin = @board[i]
