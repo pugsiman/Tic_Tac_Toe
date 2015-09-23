@@ -138,7 +138,6 @@ module TicTacToe
       end
     end
   end
-  puts @board
   # AI components
   def try_sides
     [1,3,5,7].each do |idx|
