@@ -15,14 +15,11 @@ module TicTacToe
     end
 
     def display_board
-      n = 0
-      b = @board
-
       puts "\n -----------"
-      3.times do
-        puts '  ' + b[n].to_s + ' | ' + b[n + 1].to_s + ' | ' + b[n + 2].to_s
+      @board.each_slice(3) do |row| 
+        print '  '
+        puts row.join(' | ')
         puts ' -----------'
-        n += 3
       end
       puts ''
     end
