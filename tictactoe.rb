@@ -18,8 +18,7 @@ module TicTacToe
       n = 0
       b = @board
 
-      puts ''
-      puts ' -----------'
+      puts "\n -----------"
       3.times do
         puts '  ' + b[n].to_s + ' | ' + b[n + 1].to_s + ' | ' + b[n + 2].to_s
         puts ' -----------'
@@ -47,7 +46,8 @@ module TicTacToe
       elsif position.is_a?(String)
         if position.downcase == 'exit'
           puts 'Wow, rude. Bye.'
-          return @exit = true # return for a special case of both declaring and an early breakout.
+          return @exit = true # return for a special case of both declaring,
+          # and an early breakout.
         end
         puts 'Position can only be a number, silly.'
         puts 'Try again or type EXIT to, well, exit.'
@@ -64,7 +64,7 @@ module TicTacToe
       puts 'Choose a number (1-9) to place your mark on, Player 2.'
       position = gets.chomp
 
-      # using personal created method
+      # using personal created method to detemine input.
       if position.is_integer?
         position = position.to_i
       end
@@ -95,27 +95,19 @@ module TicTacToe
     end
 
     def win_game?
+      sequences = [[0,1,2],[3,4,5],[6,7,8],
+                   [0,3,6],[1,4,7],[2,5,8],
+                   [0,4,8],[2,4,6]]
       b = @board
-      # horizontal win
-      if
-        (b[0..2].count('X') == 3 || b[0..2].count('O') == 3) ||
-        (b[3..5].count('X') == 3 || b[3..5].count('O') == 3) ||
-        (b[6..8].count('X') == 3 || b[6..8].count('O') == 3)
-      then return true
-      # vertical win
-      elsif
-        (b.values_at(0, 3, 6).count('X') == 3 || b.values_at(0, 3, 6).count('O') == 3) ||
-        (b.values_at(1, 4, 7).count('X') == 3 || b.values_at(1, 4, 7).count('O') == 3) ||
-        (b.values_at(2, 5, 8).count('X') == 3 || b.values_at(2, 5, 8).count('O') == 3)
-      then return true
-      # diagonal win
-      elsif
-        (b.values_at(0, 4, 8).count('X') == 3 || b.values_at(0, 4, 8).count('O') == 3) ||
-        (b.values_at(2, 4, 6).count('X') == 3 || b.values_at(2, 4, 6).count('O') == 3)
-      then return true
-      else
-        return false
+
+      sequences.each do |sequence|
+        if sequence.all? { |a| b[a] == "X"}
+          return true
+        elsif sequence.all? { |a| b[a] == "O"}
+          return true
+        end
       end
+      false
     end
 
     def draw?
@@ -146,29 +138,21 @@ module TicTacToe
       end
     end
   end
-
+  puts @board
   # AI components
   def try_sides
-    if @board[1].is_a? Fixnum
-      return @board[1] = 'O'
-    elsif @board[3].is_a? Fixnum
-      return @board[3] = 'O'
-    elsif @board[5].is_a? Fixnum
-      return @board[5] = 'O'
-    elsif @board[7].is_a? Fixnum
-      return @board[7] = 'O'
+    [1,3,5,7].each do |idx|
+      if @board[idx].is_a? Fixnum
+        return @board[idx] = 'O'
+      end
     end
   end
 
   def try_corners
-    if @board[0].is_a? Fixnum
-      return @board[0] = 'O'
-    elsif @board[2].is_a? Fixnum
-      return @board[2] = 'O'
-    elsif @board[6].is_a? Fixnum
-      return @board[6] = 'O'
-    elsif @board[8].is_a? Fixnum
-      return @board[8] = 'O'
+    [0,2,6,8].each do |idx|
+      if @board[idx].is_a? Fixnum
+        return @board[idx] = 'O'
+      end
     end
   end
 
@@ -192,16 +176,24 @@ module TicTacToe
     end
 
     # if impossible to win nor block, default placement to center.
+    # if default is occupied, choose between corners or sides randomly.
     if !@board[4].is_a? String
       return @board[4] = 'O'
-    end
-
-    # if default is occupied, choose between corners or sides randomly.
-    if @board[4].is_a? String
+    else
       rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
     end
   end
-
+  
+  def thinking_simulation
+    [0.5, 0.4, 0.3, 0.2].each_with_index do |time, idx|
+      puts
+      print 'Evil A.I. is scheming.'
+      idx.times {print '.'}
+      sleep(time)
+    end
+    puts
+  end
+  
   def aigame_progress
     if rand > 0.3
       while @running
@@ -209,23 +201,13 @@ module TicTacToe
         break if @exit
         result?
         break if !@running
-        puts 'Evil A.I. is scheming.'
-        sleep(0.6)
-        puts 'Evil A.I. is scheming..'
-        sleep(0.6)
-        puts 'Evil A.I. is scheming...'
-        sleep(0.3)
+        thinking_simulation
         ai_turn
         result?
       end
     else
       while @running
-        puts 'Evil A.I. is scheming.'
-        sleep(0.6)
-        puts 'Evil A.I. is scheming..'
-        sleep(0.6)
-        puts 'Evil A.I. is scheming...'
-        sleep(0.3)
+        thinking_simulation
         ai_turn
         result?
         break if !@running
@@ -240,8 +222,10 @@ end
 def play
   include TicTacToe
   match = Game.new
+  
   puts 'Welcome to Tic Tac Toe, enter 1 to play against another player, or 2 to play against an evil A.I.'
-  puts 'Type EXIT anytime to quit'
+  puts 'Type EXIT anytime to quit.'
+  
   choice = gets.chomp.to_i
   case choice
   when 1 then match.playergame_progress
