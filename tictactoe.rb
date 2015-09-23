@@ -16,7 +16,7 @@ module TicTacToe
 
     def display_board
       puts "\n -----------"
-      @board.each_slice(3) do |row| 
+      @board.each_slice(3) do |row|
         print '  '
         puts row.join(' | ')
         puts ' -----------'
@@ -62,9 +62,7 @@ module TicTacToe
       position = gets.chomp
 
       # using personal created method to detemine input.
-      if position.is_integer?
-        position = position.to_i
-      end
+      position = position.to_i if position.is_integer?
 
       if @board.include?(position)
         @board.map! do |num|
@@ -98,9 +96,9 @@ module TicTacToe
       b = @board
 
       sequences.each do |sequence|
-        if sequence.all? { |a| b[a] == "X"}
+        if sequence.all? { |a| b[a] == 'X' }
           return true
-        elsif sequence.all? { |a| b[a] == "O"}
+        elsif sequence.all? { |a| b[a] == 'O' }
           return true
         end
       end
@@ -108,7 +106,7 @@ module TicTacToe
     end
 
     def draw?
-      @board.all? { |all| all.is_a? String } # returns true if no one won by the end of the match.
+      @board.all? { |all| all.is_a? String } # returns true if no one won by the end.
     end
 
     def result?
@@ -138,17 +136,13 @@ module TicTacToe
   # AI components
   def try_sides
     [1,3,5,7].each do |idx|
-      if @board[idx].is_a? Fixnum
-        return @board[idx] = 'O'
-      end
+      return @board[idx] = 'O' if @board[idx].is_a? Fixnum
     end
   end
 
   def try_corners
     [0,2,6,8].each do |idx|
-      if @board[idx].is_a? Fixnum
-        return @board[idx] = 'O'
-      end
+      return @board[idx] = 'O' if @board[idx].is_a? Fixnum
     end
   end
 
@@ -179,17 +173,16 @@ module TicTacToe
       rand > 0.499 ? try_sides || try_corners : try_corners || try_sides
     end
   end
-  
+
   def thinking_simulation
     [0.5, 0.4, 0.3, 0.2].each_with_index do |time, idx|
-      puts
-      print 'Evil A.I. is scheming.'
-      idx.times {print '.'}
+      print "\nEvil A.I. is scheming."
+      idx.times { print '.' }
       sleep(time)
     end
     puts
   end
-  
+
   def aigame_progress
     if rand > 0.3
       while @running
@@ -218,10 +211,10 @@ end
 def play
   include TicTacToe
   match = Game.new
-  
+
   puts 'Welcome to Tic Tac Toe, enter 1 to play against another player, or 2 to play against an evil A.I.'
   puts 'Type EXIT anytime to quit.'
-  
+
   choice = gets.chomp.to_i
   case choice
   when 1 then match.playergame_progress
