@@ -22,14 +22,6 @@ class Game
     puts
   end
 
-  def determine_player(player)
-    if player == :X
-      return :X.to_s
-    elsif player == :O
-      return :O.to_s
-    end
-  end
-
   def turn(chosen_player)
     display_board
     puts "Choose a number (1-9) to place your mark on, Player #{chosen_player}."
@@ -59,6 +51,10 @@ class Game
       puts 'Try again or type EXIT to, well, exit.'
       turn(chosen_player)
     end
+  end
+
+  def determine_player(player)
+    player.to_s
   end
 
   def win_game?
@@ -121,7 +117,7 @@ class Game
     0.upto(8) do |i|
       origin = @board[i]
       @board[i] = 'O' if @board[i] != 'X'
-      win_game? ? return : @board[i] = origin # return for early breakout if won game.
+      win_game? ? return : @board[i] = origin # early breakout if won game.
     end
 
     # if impossible to win before player, check if possible to block player from winning.
@@ -178,7 +174,7 @@ end
 def play
   match = Game.new
 
-  puts 'Welcome to Tic Tac Toe'
+  puts 'Welcome to Tic Tac Toe.'
   puts 'Enter 1 to play against another player, or 2 to play against an evil AI.'
   puts 'Type EXIT anytime to quit.'
 
