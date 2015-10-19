@@ -39,10 +39,7 @@ class Game
         end
       end
     elsif position.is_a?(String)
-      if position.downcase == 'exit'
-        puts 'Wow, rude. Bye.'
-        exit
-      end
+      exit_game if position.downcase == 'exit'
       puts 'Position can only be a number, silly.'
       puts 'Try again or type EXIT to, well, exit.'
       turn(chosen_player)
@@ -53,6 +50,11 @@ class Game
     end
   end
 
+  def exit_game
+    puts 'Wow, rude. Bye.'
+    exit
+  end
+
   def determine_player(player)
     player.to_s
   end
@@ -61,12 +63,11 @@ class Game
     sequences = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
                  [0, 3, 6], [1, 4, 7], [2, 5, 8],
                  [0, 4, 8], [2, 4, 6]]
-    b = @board
 
     sequences.each do |sequence|
-      if sequence.all? { |a| b[a] == 'X' }
+      if sequence.all? { |a| @board[a] == 'X' }
         return true
-      elsif sequence.all? { |a| b[a] == 'O' }
+      elsif sequence.all? { |a| @board[a] == 'O' }
         return true
       end
     end
@@ -116,16 +117,16 @@ class Game
     # first check if possible to win before human player.
     0.upto(8) do |i|
       origin = @board[i]
-      @board[i] = 'O' if @board[i] != 'X'
+      @board[i] = 'O' unless @board[i] == 'X'
       win_game? ? return : @board[i] = origin # early breakout if won game.
     end
 
     # if impossible to win before player, check if possible to block player from winning.
     0.upto(8) do |i|
       origin = @board[i]
-      @board[i] = 'X' if @board[i] != 'O'
+      @board[i] = 'X' unless @board[i] == 'O'
       if win_game?
-        return @board[i] = 'O' # if player can win that way, place it there before him.
+        return @board[i] = 'O' # if player can win that way, place it there.
       else
         @board[i] = origin
       end
@@ -175,7 +176,7 @@ def play
   match = Game.new
 
   puts 'Welcome to Tic Tac Toe.'
-  puts 'Enter 1 to play against another player, or 2 to play against an evil AI.'
+  puts 'Enter 1 to play against another player, 2 to play against an evil AI.'
   puts 'Type EXIT anytime to quit.'
 
   choice = gets.chomp.to_i
