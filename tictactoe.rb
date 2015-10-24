@@ -1,6 +1,6 @@
 # Main TicTacToe game class
 class Game
-  attr_writer :board # for tests
+  attr_writer :board # for spec tests
 
   def initialize
     @board = (1..9).to_a
@@ -17,7 +17,7 @@ class Game
     case choice
     when 1 then playergame_progress
     when 2 then aigame_progress
-    else puts 'You silly, you.'
+    else        puts 'You silly, you.'
     end
   end
 
@@ -128,8 +128,8 @@ class Game
       origin = @board[i]
       @board[i] = 'X' unless @board[i] == 'O'
       if win_game?
-        return [@finished = true, @board[i] = 'O']
         # if player can win that way, place it there.
+        return [@finished = true, @board[i] = 'O']
       else
         @board[i] = origin
       end
@@ -154,11 +154,7 @@ class Game
     if @board[4].is_a? Fixnum
       return @board[4] = 'O'
     else
-      if rand > 0.499
-        possible_sides
-      else
-        possible_corners
-      end
+      rand > 0.499 ? possible_sides : possible_corners
     end
   end
 
