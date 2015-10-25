@@ -1,33 +1,75 @@
-# Main TicTacToe game class
-class Game
-  attr_writer :board # for spec tests
+# players in the game
+class Player
+  attr_reader :name, :symbol
+
+  def initialize(name, symbol)
+    @name = name
+    @symbol = symbol
+  end
+end
+
+# the game board
+class Board
+  attr_reader :board
 
   def initialize
     @board = (1..9).to_a
-    @running = true
+  end
+
+  def display_board
+    puts "\e[H\e[2J" # ANSI clear
+    @board.each_slice(3).with_index do |row, idx|
+      print "  #{row.join(' | ')}\n"
+      puts ' ---+---+---' unless idx == 2
+    end
+    puts
+  end
+
+  def welcome_msg
+    puts 'Welcome to Tic Tac Toe.'
+    puts 'Enter 1 to play against another player, 2 to play against an evil AI.'
+    puts 'Type EXIT anytime to quit.'
+  end
+
+  def cell_open?(position)
+    @board[position - 1].is_a?(Fixnum) ? true : false
+  end
+
+  def full?
+    @board.each do |cell|
+      return false if cell.is_a? Fixnum
+    end
+    true
+  end
+
+  def place_mark(position, symbol)
+    @board[position - 1] = symbol
+  end
+end
+
+# game logic
+class Game
+  attr_accessor :board, :player1, :player2, :current_player
+
+  def initialize
+    @board = Board.new
+    @player1 = Player.new('Player 1', 'X')
+    @player2 = Player.new('Player 2', 'O')
+    @ai = AI.new(@board, 'O')
+    # @ai.board.display_board
     start_screen
   end
 
   def start_screen
-    puts 'Welcome to Tic Tac Toe.'
-    puts 'Enter 1 to play against another player, 2 to play against an evil AI.'
-    puts 'Type EXIT anytime to quit.'
-
-    choice = gets.chomp.to_i
-    case choice
-    when 1 then playergame_progress
-    when 2 then aigame_progress
-    else        puts 'You silly, you.'
-    end
-  end
-
-  def playergame_progress
-    while @running
-      turn(:X)
-      result?
-      break unless @running
-      turn(:O)
-      result?
+    @board.welcome_msg
+    choice = nil
+    until (1..2).include? choice
+      choice = gets.chomp.to_i
+      case choice
+      when 1 then [@current_player = @player1, players_turn]
+      when 2 then [@current_player = @player1, players_turn]
+      else        puts 'You silly goose, try again.'
+      end
     end
   end
 
@@ -35,51 +77,62 @@ class Game
     rand > 0.3 ? player_first : ai_first
   end
 
-  def turn(chosen_player)
-    display_board
-    puts "Choose a number (1-9) to place your mark on, Player #{chosen_player}."
-    position = gets.chomp
-    position = position.to_i unless position.to_i == 0
-
-    if @board.include?(position)
-      @board.map! do |num|
-        if num == position
-          chosen_player.to_s
-        else
-          num
-        end
-      end
-    elsif position.is_a?(String)
-      exit_game if position.downcase == 'exit'
-      puts 'Position can only be a number, silly.'
-      puts 'Try again or type EXIT to, well, exit.'
-      turn(chosen_player)
-    else
-      puts 'This position does not exist or already occupied, chief.'
-      puts 'Try again or type EXIT to, well, exit.'
-      turn(chosen_player)
+  def players_turn
+    @board.display_board
+    until win_game? || @board.full?
+      position = player_input
+      @board.place_mark(position.to_i, @current_player.symbol)
+      @board.display_board
+      result?
+      swap_players
     end
   end
 
-  def display_board
-    puts "\n -----------"
-    @board.each_slice(3) do |row|
-      print '  '
-      puts row.join(' | ')
-      puts ' -----------'
+  def player_input
+    input = nil
+    until (1..9).include?(input) && @board.cell_open?(input)
+      puts "Choose a number (1-9) to place your mark #{@current_player.name}."
+      input = validate_input(gets.chomp)
     end
-    puts
+    input
+  end
+
+  def validate_input(input)
+    if input.to_i == 0
+      exit if input.downcase == 'exit'
+      puts 'You can\'t use a string, silly.'
+    else
+      position = validate_position(input.to_i)
+    end
+    position
+  end
+
+  def validate_position(position)
+    if !(1..9).include? position
+      puts 'This position does not exist, chief.'
+      puts 'Try again or type EXIT to, well, exit.'
+    elsif !@board.cell_open? position
+      puts 'Nice try but this cell is already taken.'
+      puts 'Try again or type EXIT to, well, exit.'
+    end
+    position
+  end
+
+  def swap_players
+    if @current_player == @player1
+      @current_player = @player2
+    else
+      @current_player = @player1
+    end
   end
 
   def result?
     if win_game?
-      display_board
-      puts 'Game Over'
-      @running = false
-    elsif draw?
-      display_board
-      puts 'Draw'
-      @running = false
+      puts "Game Over, #{@current_player.name} has won."
+      exit
+    elsif @board.full?
+      puts 'Draw.'
+      exit
     end
   end
 
@@ -89,23 +142,21 @@ class Game
                  [0, 4, 8], [2, 4, 6]]
 
     sequences.each do |seq|
-      if seq.all? { |a| @board[a] == 'X' } || seq.all? { |a| @board[a] == 'O' }
-        return true
-      end
+      return true if seq.all? { |a| @board.board[a] == @current_player.symbol }
     end
     false
   end
+end
 
-  def draw?
-    @board.all? { |all| all.is_a? String } # returns true if no one has won.
+# AI player components
+class AI
+  attr_accessor :board, :symbol
+
+  def initialize(board, symbol)
+    @board = board
+    @symbol = symbol
   end
 
-  def exit_game
-    puts 'Wow, rude. Bye.'
-    exit
-  end
-
-  # AI components
   def check_win
     # first check if possible to win before human player.
     @finished = false
@@ -172,28 +223,6 @@ class Game
     check_block
     return if @finished
     check_defaults
-  end
-
-  def player_first
-    while @running
-      turn(:X)
-      result?
-      break unless @running
-      loading_simulation
-      ai_turn
-      result?
-    end
-  end
-
-  def ai_first
-    while @running
-      loading_simulation
-      ai_turn
-      result?
-      break unless @running
-      turn(:X)
-      result?
-    end
   end
 end
 
