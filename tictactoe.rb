@@ -10,14 +10,14 @@ end
 
 # the game board
 class Board
-  attr_reader :board
+  attr_accessor :board
 
   def initialize
     @board = (1..9).to_a
   end
 
   def display_board
-    puts "\e[H\e[2J" # ANSI clear
+    # puts "\e[H\e[2J" # ANSI clear
     @board.each_slice(3).with_index do |row, idx|
       print "  #{row.join(' | ')}\n"
       puts ' ---+---+---' unless idx == 2
@@ -35,6 +35,17 @@ class Board
     @board[position - 1].is_a?(Fixnum) ? true : false
   end
 
+  def win_game?(symbol)
+    sequences = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
+                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                 [0, 4, 8], [2, 4, 6]]
+
+    sequences.each do |seq|
+      return true if seq.all? { |a| @board[a] == symbol }
+    end
+    false
+  end
+
   def full?
     @board.each do |cell|
       return false if cell.is_a? Fixnum
@@ -49,13 +60,14 @@ end
 
 # game logic
 class Game
-  attr_accessor :board, :player1, :player2, :current_player
+  attr_accessor :board, :player1, :player2, :ai, :current_player
 
   def initialize
     @board = Board.new
     @player1 = Player.new('Player 1', 'X')
     @player2 = Player.new('Player 2', 'O')
-    @ai = AI.new(@board, 'O')
+    @ai = AI.new('Evil AI', 'O')
+    @current_player = @player1
     # @ai.board.display_board
     start_screen
   end
@@ -66,20 +78,16 @@ class Game
     until (1..2).include? choice
       choice = gets.chomp.to_i
       case choice
-      when 1 then [@current_player = @player1, players_turn]
-      when 2 then [@current_player = @player1, players_turn]
+      when 1 then players_turn
+      when 2 then pva_turn
       else        puts 'You silly goose, try again.'
       end
     end
   end
 
-  def aigame_progress
-    rand > 0.3 ? player_first : ai_first
-  end
-
   def players_turn
     @board.display_board
-    until win_game? || @board.full?
+    until @board.win_game?(@current_player.symbol) || @board.full?
       position = player_input
       @board.place_mark(position.to_i, @current_player.symbol)
       @board.display_board
@@ -126,8 +134,33 @@ class Game
     end
   end
 
+  def swap_pva
+    if @current_player == @player1
+      @current_player = @ai
+    else
+      @current_player = @player1
+    end
+  end
+
+  def pva_turn
+    @board.display_board
+    until @board.win_game?(@current_player.symbol) || @board.full?
+      position = player_input
+      @board.place_mark(position.to_i, @current_player.symbol)
+      @board.display_board
+      result?
+      swap_pva
+      break if @board.win_game?(@current_player.symbol) || @board.full?
+      position = @ai.ai_turn(@board)
+      @board.place_mark(position.to_i, @current_player.symbol)
+      @board.display_board
+      result?
+      swap_pva
+    end
+  end
+
   def result?
-    if win_game?
+    if @board.win_game?(@current_player.symbol)
       puts "Game Over, #{@current_player.name} has won."
       exit
     elsif @board.full?
@@ -135,77 +168,81 @@ class Game
       exit
     end
   end
-
-  def win_game?
-    sequences = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
-                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                 [0, 4, 8], [2, 4, 6]]
-
-    sequences.each do |seq|
-      return true if seq.all? { |a| @board.board[a] == @current_player.symbol }
-    end
-    false
-  end
 end
 
 # AI player components
 class AI
-  attr_accessor :board, :symbol
+  attr_accessor :board, :name, :symbol
 
-  def initialize(board, symbol)
-    @board = board
+  def initialize(name, symbol)
+    @name = name
     @symbol = symbol
   end
 
-  def check_win
-    # first check if possible to win before human player.
+  def ai_turn(board)
     @finished = false
-    0.upto(8) do |i|
-      origin = @board[i]
-      @board[i] = 'O' unless @board[i] == 'X'
-      if win_game?
-        return @finished = true # early breakout if won game.
+    check_win(board)
+    check_block(board) unless @finished
+    check_defaults(board) unless @finished
+  end
+
+  def check_win(board)
+    # first check if possible to win before human player.
+    1.upto(9) do |i|
+      origin = board.board[i - 1]
+      board.board[i - 1] = 'O' unless board.board[i - 1] == 'X'
+      if board.win_game?('O')
+        @finished = true
+        return i
       else
-        @board[i] = origin
+        board.board[i - 1] = origin
       end
     end
   end
 
-  def check_block
+  def check_block(board)
     # if impossible to win before player,
     # check if possible to block player from winning.
     @finished = false
-    0.upto(8) do |i|
-      origin = @board[i]
-      @board[i] = 'X' unless @board[i] == 'O'
-      if win_game?
-        # if player can win that way, place it there.
-        return [@finished = true, @board[i] = 'O']
+    1.upto(9) do |i|
+      origin = board.board[i - 1]
+      board.board[i - 1] = 'X' unless board.board[i - 1] == 'O'
+      if board.win_game?('X')
+        @finished = true
+        return i # put it there if player can win that way.
       else
-        @board[i] = origin
+        board.board[i - 1] = origin
       end
     end
   end
 
-  def possible_sides
-    [1, 3, 5, 7].each do |idx|
-      return @board[idx] = 'O' if @board[idx].is_a? Fixnum
-    end
-  end
-
-  def possible_corners
-    [0, 2, 6, 8].each do |idx|
-      return @board[idx] = 'O' if @board[idx].is_a? Fixnum
-    end
-  end
-
-  def check_defaults
+  def check_defaults(board)
+    @finished = false
     # if impossible to win nor block, default placement to center.
     # if occupied, choose randomly between corners or sides.
-    if @board[4].is_a? Fixnum
-      return @board[4] = 'O'
+    if board.board[4].is_a? Fixnum
+      @finished = true
+      return 5
     else
-      rand > 0.499 ? possible_sides : possible_corners
+      rand > 0.499 ? possible_sides(board) : possible_corners(board)
+    end
+  end
+
+  def possible_sides(board)
+    [2, 4, 6, 8].each do |idx|
+      if board.board[idx - 1].is_a? Fixnum
+        @finished = true
+        return idx
+      end
+    end
+  end
+
+  def possible_corners(board)
+    [1, 3, 7, 9].each do |idx|
+      if board.board[idx - 1].is_a? Fixnum
+        @finished = true
+        return idx
+      end
     end
   end
 
@@ -215,14 +252,6 @@ class AI
       print str += '.'
       sleep(0.25)
     end
-  end
-
-  def ai_turn
-    check_win
-    return if @finished
-    check_block
-    return if @finished
-    check_defaults
   end
 end
 
