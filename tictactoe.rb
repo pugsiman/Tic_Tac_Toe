@@ -17,7 +17,7 @@ class Board
   end
 
   def display_board
-    # puts "\e[H\e[2J" # ANSI clear
+    puts "\e[H\e[2J" # ANSI clear
     @board.each_slice(3).with_index do |row, idx|
       print "  #{row.join(' | ')}\n"
       puts ' ---+---+---' unless idx == 2
@@ -26,8 +26,9 @@ class Board
   end
 
   def welcome_msg
-    puts 'Welcome to Tic Tac Toe.'
-    puts 'Enter 1 to play against another player, 2 to play against an evil AI.'
+    print "\nWelcome to Tic Tac Toe.\n\n"
+    puts 'Enter 1 to play against another player, 2 to play against an evil AI'\
+         ', 3 to watch evil AI play against kind AI.'
     puts 'Type EXIT anytime to quit.'
   end
 
@@ -67,33 +68,74 @@ class Game
     @player1 = Player.new('Player 1', 'X')
     @player2 = Player.new('Player 2', 'O')
     @ai = AI.new('Evil AI', 'O')
+    @ai2 = AI.new('Kind AI', 'X')
     @current_player = @player1
-    # @ai.board.display_board
     start_screen
   end
 
   def start_screen
     @board.welcome_msg
     choice = nil
-    until (1..2).include? choice
-      choice = gets.chomp.to_i
-      case choice
-      when 1 then players_turn
-      when 2 then pva_turn
-      else        puts 'You silly goose, try again.'
-      end
+    until (1..3).include?(choice)
+      choice = gets.chomp
+      exit if choice.downcase == 'exit'
+      game_modes(choice.to_i)
     end
   end
 
-  def players_turn
+  def game_modes(choice)
+    case choice
+    when 1 then pvp_game
+    when 2 then pva_game
+    when 3 then ava_game
+    else        puts 'You silly goose, try again.'
+    end
+  end
+
+  def pvp_game
     @board.display_board
-    until @board.win_game?(@current_player.symbol) || @board.full?
-      position = player_input
-      @board.place_mark(position.to_i, @current_player.symbol)
-      @board.display_board
-      result?
+    until game_over
+      player_place_n_check
       swap_players
     end
+  end
+
+  def pva_game
+    @board.display_board
+    until game_over
+      player_place_n_check
+      swap_pva
+      ai_place_n_check(@ai)
+      swap_pva
+    end
+  end
+
+  def ava_game
+    @board.display_board
+    until game_over
+      ai_place_n_check(@ai2)
+      swap_ava
+      ai_place_n_check(@ai)
+      swap_ava
+    end
+  end
+
+  def game_over
+    @board.win_game?(@current_player.symbol) || @board.full?
+  end
+
+  def player_place_n_check
+    position = player_input
+    @board.place_mark(position.to_i, @current_player.symbol)
+    @board.display_board
+    result?
+  end
+
+  def ai_place_n_check(player)
+    position = player.ai_turn(@board)
+    @board.place_mark(position.to_i, @current_player.symbol) unless position.nil?
+    @board.display_board
+    result?
   end
 
   def player_input
@@ -126,39 +168,6 @@ class Game
     position
   end
 
-  def swap_players
-    if @current_player == @player1
-      @current_player = @player2
-    else
-      @current_player = @player1
-    end
-  end
-
-  def swap_pva
-    if @current_player == @player1
-      @current_player = @ai
-    else
-      @current_player = @player1
-    end
-  end
-
-  def pva_turn
-    @board.display_board
-    until @board.win_game?(@current_player.symbol) || @board.full?
-      position = player_input
-      @board.place_mark(position.to_i, @current_player.symbol)
-      @board.display_board
-      result?
-      swap_pva
-      break if @board.win_game?(@current_player.symbol) || @board.full?
-      position = @ai.ai_turn(@board)
-      @board.place_mark(position.to_i, @current_player.symbol)
-      @board.display_board
-      result?
-      swap_pva
-    end
-  end
-
   def result?
     if @board.win_game?(@current_player.symbol)
       puts "Game Over, #{@current_player.name} has won."
@@ -167,6 +176,24 @@ class Game
       puts 'Draw.'
       exit
     end
+  end
+
+  def swap_players
+    case @current_player
+    when @player1 then @current_player = @player2
+    else               @current_player = @player1
+    end
+  end
+
+  def swap_pva
+    case @current_player
+    when @player1 then @current_player = @ai
+    else               @current_player = @player1
+    end
+  end
+
+  def swap_ava
+    @current_player == @ai ? @current_player = @ai2 : @current_player = @ai
   end
 end
 
@@ -180,77 +207,68 @@ class AI
   end
 
   def ai_turn(board)
-    @finished = false
+    loading_simulation
     check_win(board)
-    check_block(board) unless @finished
-    check_defaults(board) unless @finished
+    return @finished if @finished
+    check_block(board)
+    return @finished if @finished
+    check_defaults(board)
+    return @finished if @finished
   end
 
+  # first check if possible to win before human player.
   def check_win(board)
-    # first check if possible to win before human player.
-    1.upto(9) do |i|
-      origin = board.board[i - 1]
-      board.board[i - 1] = 'O' unless board.board[i - 1] == 'X'
-      if board.win_game?('O')
-        @finished = true
-        return i
-      else
-        board.board[i - 1] = origin
-      end
-    end
-  end
-
-  def check_block(board)
-    # if impossible to win before player,
-    # check if possible to block player from winning.
     @finished = false
     1.upto(9) do |i|
       origin = board.board[i - 1]
-      board.board[i - 1] = 'X' unless board.board[i - 1] == 'O'
-      if board.win_game?('X')
-        @finished = true
-        return i # put it there if player can win that way.
-      else
-        board.board[i - 1] = origin
-      end
+      board.board[i - 1] = 'O' if origin.is_a? Fixnum
+      # put it there if AI can win that way.
+      return @finished = i if board.win_game?('O')
+      board.board[i - 1] = origin
     end
   end
 
+  # if impossible to win before player,
+  # check if possible to block player from winning.
+  def check_block(board)
+    @finished = false
+    1.upto(9) do |i|
+      origin = board.board[i - 1]
+      board.board[i - 1] = 'X' if origin.is_a? Fixnum
+      # put it there if player can win that way.
+      return @finished = i if board.win_game?('X')
+      board.board[i - 1] = origin
+    end
+  end
+
+  # if impossible to win nor block, default placement to center.
+  # if occupied, choose randomly between corners or sides.
   def check_defaults(board)
     @finished = false
-    # if impossible to win nor block, default placement to center.
-    # if occupied, choose randomly between corners or sides.
     if board.board[4].is_a? Fixnum
-      @finished = true
-      return 5
+      @finished = 5
     else
-      rand > 0.499 ? possible_sides(board) : possible_corners(board)
+      rand < 0.51 ? possible_sides(board) : possible_corners(board)
     end
   end
 
   def possible_sides(board)
-    [2, 4, 6, 8].each do |idx|
-      if board.board[idx - 1].is_a? Fixnum
-        @finished = true
-        return idx
-      end
+    [2, 4, 6, 8].each do |i|
+      return @finished = i if board.board[i - 1].is_a? Fixnum
     end
   end
 
   def possible_corners(board)
-    [1, 3, 7, 9].each do |idx|
-      if board.board[idx - 1].is_a? Fixnum
-        @finished = true
-        return idx
-      end
+    [1, 3, 7, 9].each do |i|
+      return @finished = i if board.board[i - 1].is_a? Fixnum
     end
   end
 
   def loading_simulation
     str = "\rEvil AI is scheming"
-    5.times do
+    10.times do
       print str += '.'
-      sleep(0.25)
+      sleep(0.1)
     end
   end
 end
