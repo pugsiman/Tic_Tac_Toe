@@ -265,7 +265,7 @@ class AI
   end
 
   def loading_simulation
-    str = "\rEvil AI is scheming"
+    str = "\r#{name} is scheming"
     10.times do
       print str += '.'
       sleep(0.1)
