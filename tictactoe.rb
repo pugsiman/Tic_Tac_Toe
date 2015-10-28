@@ -199,7 +199,7 @@ end
 
 # AI player components
 class AI
-  attr_accessor :board, :name, :symbol
+  attr_reader :name, :symbol
 
   def initialize(name, symbol)
     @name = name
