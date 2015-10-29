@@ -33,7 +33,7 @@ class Board
   end
 
   def cell_open?(position)
-    @board[position - 1].is_a?(Fixnum) ? true : false
+    @board[position - 1].is_a?(Fixnum)
   end
 
   def win_game?(symbol)
@@ -41,14 +41,14 @@ class Board
                  [0, 3, 6], [1, 4, 7], [2, 5, 8],
                  [0, 4, 8], [2, 4, 6]]
 
-    sequences.each do |seq|
+    sequences.any? do |seq|
       return true if seq.all? { |a| @board[a] == symbol }
     end
     false
   end
 
   def full?
-    @board.each do |cell|
+    @board.any? do |cell|
       return false if cell.is_a? Fixnum
     end
     true
