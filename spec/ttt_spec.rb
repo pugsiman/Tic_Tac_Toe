@@ -1,7 +1,8 @@
 require '../tictactoe.rb'
 
 # The game is initially not planned so well object oriented design-wise,
-# So the tests are limited to the basic methods
+# So the tests are limited to the basic methods.
+# Since then, the game undergone deep changes and is much better.
 
 describe Game do
   let(:game) { Game.new }
