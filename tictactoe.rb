@@ -59,8 +59,8 @@ class Game
 
   def start_screen(choice = nil)
     @board.welcome_msg
-    @player1 = Human.new(@board, 'Player 1', 'X')
-    @player2 = AI.new(@board, 'Evil AI', 'O')
+    @player1 = Human.new(@board, 'Player 1', 'X') # defaults
+    @player2 = AI.new(@board, 'Evil AI', 'O') # defaults
     until (1..3).include?(choice)
       choice = gets.chomp
       exit if choice.downcase == 'exit'
@@ -84,7 +84,7 @@ class Game
   def run_game
     until game_over
       swap_players
-      player_place_n_check
+      check_and_place
     end
   end
 
@@ -92,7 +92,7 @@ class Game
     @board.win_game?(@current_player.symbol) || @board.full?
   end
 
-  def player_place_n_check
+  def check_and_place
     position = @current_player.take_input
     @board.place_mark(position.to_i, @current_player.symbol) unless position.nil?
     @board.display_board
@@ -127,8 +127,7 @@ class Human
     @symbol = symbol
   end
 
-  def take_input
-    input = nil
+  def take_input(input = nil)
     until (1..9).include?(input) && @board.cell_open?(input)
       puts "Choose a number (1-9) to place your mark #{name}."
       input = validate_input(gets.chomp)
@@ -178,6 +177,8 @@ class AI
     return @finished if @finished
     check_defaults(board)
     return @finished if @finished
+    # failsafe check
+    (1..9).reverse_each { |i| return i if board.board[i - 1].is_a? Fixnum }
   end
 
   private
