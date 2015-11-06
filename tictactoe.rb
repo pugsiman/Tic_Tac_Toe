@@ -1,10 +1,43 @@
 # players in the game
-class Player
+class Human
   attr_reader :name, :symbol
 
-  def initialize(name, symbol)
+  def initialize(board, name, symbol)
+    @board = board
     @name = name
     @symbol = symbol
+  end
+
+  def take_input
+    input = nil
+    until (1..9).include?(input) && @board.cell_open?(input)
+      puts "Choose a number (1-9) to place your mark #{name}."
+      input = validate_input(gets.chomp)
+    end
+    input
+  end
+
+  private
+
+  def validate_input(input)
+    if input.to_i == 0
+      exit if input.downcase == 'exit'
+      puts 'You can\'t use a string, silly.'
+    else
+      position = validate_position(input.to_i)
+    end
+    position
+  end
+
+  def validate_position(position)
+    if !(1..9).include? position
+      puts 'This position does not exist, chief.'
+      puts 'Try again or type EXIT to, well, exit.'
+    elsif !@board.cell_open? position
+      puts 'Nice try but this cell is already taken.'
+      puts 'Try again or type EXIT to, well, exit.'
+    end
+    position
   end
 end
 
@@ -65,17 +98,11 @@ class Game
 
   def initialize
     @board = Board.new
-    @player1 = Player.new('Player 1', 'X')
-    @player2 = Player.new('Player 2', 'O')
-    @ai = AI.new('Evil AI', 'O')
-    @ai2 = AI.new('Kind AI', 'X')
-    @current_player = @player1
     start_screen
   end
 
-  def start_screen
+  def start_screen(choice = nil)
     @board.welcome_msg
-    choice = nil
     until (1..3).include?(choice)
       choice = gets.chomp
       exit if choice.downcase == 'exit'
@@ -84,39 +111,27 @@ class Game
   end
 
   def game_modes(choice)
+    @board.display_board
     case choice
-    when 1 then pvp_game
-    when 2 then pva_game
-    when 3 then ava_game
-    else        puts 'You silly goose, try again.'
+    when 1
+      @player1 = Human.new(@board, 'Player 1', 'X')
+      @player2 = Human.new(@board, 'Player 2', 'O')
+    when 2
+      @player1 = Human.new(@board, 'Player 1', 'X')
+      @player2 = AI.new(@board, 'Evil AI', 'O')
+    when 3
+      @player1 = AI.new(@board, 'Kind AI', 'X')
+      @player2 = AI.new(@board, 'Evil AI', 'O')
+    else puts 'You silly goose, try again.'
     end
+    @current_player = @player2
+    run_game
   end
 
-  def pvp_game
-    @board.display_board
+  def run_game
     until game_over
-      player_place_n_check
       swap_players
-    end
-  end
-
-  def pva_game
-    @board.display_board
-    until game_over
       player_place_n_check
-      swap_pva
-      ai_place_n_check(@ai)
-      swap_pva
-    end
-  end
-
-  def ava_game
-    @board.display_board
-    until game_over
-      ai_place_n_check(@ai2)
-      swap_ava
-      ai_place_n_check(@ai)
-      swap_ava
     end
   end
 
@@ -125,47 +140,10 @@ class Game
   end
 
   def player_place_n_check
-    position = player_input
-    @board.place_mark(position.to_i, @current_player.symbol)
-    @board.display_board
-    result?
-  end
-
-  def ai_place_n_check(player)
-    position = player.ai_turn(@board)
+    position = @current_player.take_input
     @board.place_mark(position.to_i, @current_player.symbol) unless position.nil?
     @board.display_board
     result?
-  end
-
-  def player_input
-    input = nil
-    until (1..9).include?(input) && @board.cell_open?(input)
-      puts "Choose a number (1-9) to place your mark #{@current_player.name}."
-      input = validate_input(gets.chomp)
-    end
-    input
-  end
-
-  def validate_input(input)
-    if input.to_i == 0
-      exit if input.downcase == 'exit'
-      puts 'You can\'t use a string, silly.'
-    else
-      position = validate_position(input.to_i)
-    end
-    position
-  end
-
-  def validate_position(position)
-    if !(1..9).include? position
-      puts 'This position does not exist, chief.'
-      puts 'Try again or type EXIT to, well, exit.'
-    elsif !@board.cell_open? position
-      puts 'Nice try but this cell is already taken.'
-      puts 'Try again or type EXIT to, well, exit.'
-    end
-    position
   end
 
   def result?
@@ -184,29 +162,19 @@ class Game
     else               @current_player = @player1
     end
   end
-
-  def swap_pva
-    case @current_player
-    when @player1 then @current_player = @ai
-    else               @current_player = @player1
-    end
-  end
-
-  def swap_ava
-    @current_player == @ai ? @current_player = @ai2 : @current_player = @ai
-  end
 end
 
 # AI player components
 class AI
-  attr_reader :name, :symbol
+  attr_reader :name, :symbol, :board
 
-  def initialize(name, symbol)
+  def initialize(board, name, symbol)
+    @board = board
     @name = name
     @symbol = symbol
   end
 
-  def ai_turn(board)
+  def take_input
     loading_simulation
     check_win(board)
     return @finished if @finished
@@ -215,6 +183,8 @@ class AI
     check_defaults(board)
     return @finished if @finished
   end
+
+  private
 
   # first check if possible to win before human player.
   def check_win(board)
