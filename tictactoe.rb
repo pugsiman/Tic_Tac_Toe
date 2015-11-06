@@ -59,6 +59,8 @@ class Game
 
   def start_screen(choice = nil)
     @board.welcome_msg
+    @player1 = Human.new(@board, 'Player 1', 'X')
+    @player2 = AI.new(@board, 'Evil AI', 'O')
     until (1..3).include?(choice)
       choice = gets.chomp
       exit if choice.downcase == 'exit'
@@ -69,12 +71,7 @@ class Game
   def game_modes(choice)
     @board.display_board
     case choice
-    when 1
-      @player1 = Human.new(@board, 'Player 1', 'X')
-      @player2 = Human.new(@board, 'Player 2', 'O')
-    when 2
-      @player1 = Human.new(@board, 'Player 1', 'X')
-      @player2 = AI.new(@board, 'Evil AI', 'O')
+    when 1 then @player2 = Human.new(@board, 'Player 2', 'O')
     when 3
       @player1 = AI.new(@board, 'Kind AI', 'X')
       @player2 = AI.new(@board, 'Evil AI', 'O')
