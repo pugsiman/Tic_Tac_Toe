@@ -1,45 +1,3 @@
-# players in the game
-class Human
-  attr_reader :name, :symbol
-
-  def initialize(board, name, symbol)
-    @board = board
-    @name = name
-    @symbol = symbol
-  end
-
-  def take_input
-    input = nil
-    until (1..9).include?(input) && @board.cell_open?(input)
-      puts "Choose a number (1-9) to place your mark #{name}."
-      input = validate_input(gets.chomp)
-    end
-    input
-  end
-
-  private
-
-  def validate_input(input)
-    if input.to_i == 0
-      exit if input.downcase == 'exit'
-      puts 'You can\'t use a string, silly.'
-    else
-      position = validate_position(input.to_i)
-    end
-    position
-  end
-
-  def validate_position(position)
-    if !(1..9).include? position
-      puts 'This position does not exist, chief.'
-      puts 'Try again or type EXIT to, well, exit.'
-    elsif !@board.cell_open? position
-      puts 'Nice try but this cell is already taken.'
-      puts 'Try again or type EXIT to, well, exit.'
-    end
-    position
-  end
-end
 
 # the game board
 class Board
@@ -94,8 +52,6 @@ end
 
 # game logic
 class Game
-  attr_accessor :board, :player1, :player2, :ai, :current_player
-
   def initialize
     @board = Board.new
     start_screen
@@ -164,7 +120,50 @@ class Game
   end
 end
 
-# AI player components
+# human players in the game
+class Human
+  attr_reader :name, :symbol
+
+  def initialize(board, name, symbol)
+    @board = board
+    @name = name
+    @symbol = symbol
+  end
+
+  def take_input
+    input = nil
+    until (1..9).include?(input) && @board.cell_open?(input)
+      puts "Choose a number (1-9) to place your mark #{name}."
+      input = validate_input(gets.chomp)
+    end
+    input
+  end
+
+  private
+
+  def validate_input(input)
+    if input.to_i == 0
+      exit if input.downcase == 'exit'
+      puts 'You can\'t use a string, silly.'
+    else
+      position = validate_position(input.to_i)
+    end
+    position
+  end
+
+  def validate_position(position)
+    if !(1..9).include? position
+      puts 'This position does not exist, chief.'
+      puts 'Try again or type EXIT to, well, exit.'
+    elsif !@board.cell_open? position
+      puts 'Nice try but this cell is already taken.'
+      puts 'Try again or type EXIT to, well, exit.'
+    end
+    position
+  end
+end
+
+# AI players in the game
 class AI
   attr_reader :name, :symbol, :board
 
