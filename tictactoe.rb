@@ -171,11 +171,11 @@ class AI
 
   def take_input
     loading_simulation
-    check_win(board)
+    check_win
     return @finished if @finished
-    check_block(board)
+    check_block
     return @finished if @finished
-    check_defaults(board)
+    check_defaults
     return @finished if @finished
     # failsafe check
     (1..9).reverse_each { |i| return i if board.board[i - 1].is_a? Fixnum }
@@ -184,48 +184,55 @@ class AI
   private
 
   # first check if possible to win before human player.
-  def check_win(board)
+  def check_win
     @finished = false
     1.upto(9) do |i|
       origin = board.board[i - 1]
-      board.board[i - 1] = 'O' if origin.is_a? Fixnum
+      board.board[i - 1] = symbol if origin.is_a? Fixnum
       # put it there if AI can win that way.
-      return @finished = i if board.win_game?('O')
+      return @finished = i if board.win_game?(symbol)
       board.board[i - 1] = origin
+    end
+  end
+
+  def other_symbol
+    case symbol
+    when 'X' then 'O'
+    else 'X'
     end
   end
 
   # if impossible to win before player,
   # check if possible to block player from winning.
-  def check_block(board)
+  def check_block
     @finished = false
     1.upto(9) do |i|
       origin = board.board[i - 1]
-      board.board[i - 1] = 'X' if origin.is_a? Fixnum
+      board.board[i - 1] = other_symbol if origin.is_a? Fixnum
       # put it there if player can win that way.
-      return @finished = i if board.win_game?('X')
+      return @finished = i if board.win_game?(other_symbol)
       board.board[i - 1] = origin
     end
   end
 
   # if impossible to win nor block, default placement to center.
   # if occupied, choose randomly between corners or sides.
-  def check_defaults(board)
+  def check_defaults
     @finished = false
     if board.board[4].is_a? Fixnum
       @finished = 5
     else
-      rand < 0.51 ? possible_sides(board) : possible_corners(board)
+      rand < 0.51 ? possible_sides : possible_corners
     end
   end
 
-  def possible_sides(board)
+  def possible_sides
     [2, 4, 6, 8].each do |i|
       return @finished = i if board.board[i - 1].is_a? Fixnum
     end
   end
 
-  def possible_corners(board)
+  def possible_corners
     [1, 3, 7, 9].each do |i|
       return @finished = i if board.board[i - 1].is_a? Fixnum
     end
