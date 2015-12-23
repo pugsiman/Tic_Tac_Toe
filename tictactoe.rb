@@ -1,19 +1,75 @@
+# win sequences constant
+WIN_SEQUENCES = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
+                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                 [0, 4, 8], [2, 4, 6]]
 
 # the game board
 class Board
-  attr_accessor :board
+  attr_accessor :cells
 
   def initialize
-    @board = (1..9).to_a
+    @cells = Array.new(9) # { nil }
   end
 
-  def display_board
-    puts "\e[H\e[2J" # ANSI clear
-    @board.each_slice(3).with_index do |row, idx|
-      print "  #{row.join(' | ')}\n"
-      puts ' ---+---+---' unless idx == 2
+  def as_string
+    stringed_board = @cells.map.with_index do |symbol, idx|
+      symbol || idx + 1
     end
-    puts
+
+    stringed_board.each_slice(3).map do |row|
+      "  #{row.join(' | ')}"
+    end.join("\n ---+---+---\n")
+  end
+
+  def cell_open?(position)
+    @cells[position - 1].nil?
+  end
+
+  def win_game?(symbol)
+    WIN_SEQUENCES.any? do |seq|
+      return true if seq.all? { |a| @cells[a] == symbol }
+    end
+  end
+
+  def full?
+    @cells.all?
+  end
+
+  def place_symbol(position, symbol)
+    @cells[position - 1] = symbol
+  end
+end
+
+# game logic
+class Game
+  def initialize
+    @board = Board.new
+    # default states
+    @player1 = Human.new(@board, 'Player 1', 'X')
+    @player2 = AI.new(@board, 'Evil AI', 'O')
+    welcome_msg
+    start_screen
+  end
+
+  private
+
+  def start_screen(choice = gets.chomp)
+    until (1..3).include?(choice)
+      exit if choice.downcase == 'exit'
+      select_game_mode(choice.to_i)
+    end
+  end
+
+  def select_game_mode(choice)
+    case choice
+    when 1 then [@player2 = Human.new(@board, 'Player 2', 'O')]
+    when 3 then [@player1 = AI.new(@board, 'Kind AI', 'X'),
+                 @player2 = AI.new(@board, 'Evil AI', 'O')]
+    else puts 'You silly goose, try again.'
+    end
+    @current_player = @player2
+    display_board
+    run_game
   end
 
   def welcome_msg
@@ -23,83 +79,30 @@ class Board
     puts 'Type EXIT anytime to quit.'
   end
 
-  def cell_open?(position)
-    @board[position - 1].is_a?(Fixnum)
-  end
-
-  def win_game?(symbol)
-    sequences = [[0, 1, 2], [3, 4, 5], [6, 7, 8],
-                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                 [0, 4, 8], [2, 4, 6]]
-
-    sequences.any? do |seq|
-      return true if seq.all? { |a| @board[a] == symbol }
-    end
-    false
-  end
-
-  def full?
-    @board.any? do |cell|
-      return false if cell.is_a? Fixnum
-    end
-    true
-  end
-
-  def place_mark(position, symbol)
-    @board[position - 1] = symbol
-  end
-end
-
-# game logic
-class Game
-  def initialize
-    @board = Board.new
-    start_screen
-  end
-
-  def start_screen(choice = nil)
-    @board.welcome_msg
-    @player1 = Human.new(@board, 'Player 1', 'X') # defaults
-    @player2 = AI.new(@board, 'Evil AI', 'O') # defaults
-    until (1..3).include?(choice)
-      choice = gets.chomp
-      exit if choice.downcase == 'exit'
-      game_modes(choice.to_i)
-    end
-  end
-
-  def game_modes(choice)
-    @board.display_board
-    case choice
-    when 1 then @player2 = Human.new(@board, 'Player 2', 'O')
-    when 3
-      @player1 = AI.new(@board, 'Kind AI', 'X')
-      @player2 = AI.new(@board, 'Evil AI', 'O')
-    else puts 'You silly goose, try again.'
-    end
-    @current_player = @player2
-    run_game
+  def display_board
+    puts "\e[H\e[2J" # ANSI clear
+    print @board.as_string, "\n\n"
   end
 
   def run_game
-    until game_over
+    until game_over?
       swap_players
       check_and_place
+      display_board
+      display_result
     end
   end
 
-  def game_over
+  def game_over?
     @board.win_game?(@current_player.symbol) || @board.full?
   end
 
   def check_and_place
     position = @current_player.take_input
-    @board.place_mark(position.to_i, @current_player.symbol) unless position.nil?
-    @board.display_board
-    result?
+    @board.place_symbol(position.to_i, @current_player.symbol) unless position.nil?
   end
 
-  def result?
+  def display_result
     if @board.win_game?(@current_player.symbol)
       puts "Game Over, #{@current_player.name} has won."
       exit
@@ -178,7 +181,7 @@ class AI
     check_defaults
     return @finished if @finished
     # failsafe check
-    (1..9).reverse_each { |i| return i if board.board[i - 1].is_a? Fixnum }
+    (1..9).reverse_each { |i| return i if board.cells[i - 1].nil? }
   end
 
   private
@@ -187,11 +190,11 @@ class AI
   def check_win
     @finished = false
     1.upto(9) do |i|
-      origin = board.board[i - 1]
-      board.board[i - 1] = symbol if origin.is_a? Fixnum
+      origin = board.cells[i - 1]
+      board.cells[i - 1] = symbol if origin.nil?
       # put it there if AI can win that way.
       return @finished = i if board.win_game?(symbol)
-      board.board[i - 1] = origin
+      board.cells[i - 1] = origin
     end
   end
 
@@ -207,11 +210,11 @@ class AI
   def check_block
     @finished = false
     1.upto(9) do |i|
-      origin = board.board[i - 1]
-      board.board[i - 1] = other_symbol if origin.is_a? Fixnum
+      origin = board.cells[i - 1]
+      board.cells[i - 1] = other_symbol if origin.nil?
       # put it there if player can win that way.
       return @finished = i if board.win_game?(other_symbol)
-      board.board[i - 1] = origin
+      board.cells[i - 1] = origin
     end
   end
 
@@ -219,7 +222,7 @@ class AI
   # if occupied, choose randomly between corners or sides.
   def check_defaults
     @finished = false
-    if board.board[4].is_a? Fixnum
+    if board.cells[4].nil?
       @finished = 5
     else
       rand < 0.51 ? possible_sides : possible_corners
@@ -228,13 +231,13 @@ class AI
 
   def possible_sides
     [2, 4, 6, 8].each do |i|
-      return @finished = i if board.board[i - 1].is_a? Fixnum
+      return @finished = i if board.cells[i - 1].nil?
     end
   end
 
   def possible_corners
     [1, 3, 7, 9].each do |i|
-      return @finished = i if board.board[i - 1].is_a? Fixnum
+      return @finished = i if board.cells[i - 1].nil?
     end
   end
 
