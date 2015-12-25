@@ -1,15 +1,13 @@
 # Tic Tac Toe
 ###### A tic tac toe game in Ruby with AI and game modes
 
-This project was (and is) my most educating project from learning perspective. Through it I practiced to high degree OOP principals such as:
+This project was (and is) my most educating project from learning perspective. Thanks to resources like Stackexchange I practiced to high degree OOP principals such as:
 * single responsibility
 * polymorphism
-* class separation
-* modularity
+* class separation and modularity
 
 in addition to attention for:
-* ruby style guidelines
+* readability
 * performance
 * functional AI
-* name conventions
-* readability
+* ruby style guidelines

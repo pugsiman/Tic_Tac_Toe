@@ -27,7 +27,7 @@ class Board
 
   def win_game?(symbol)
     WIN_SEQUENCES.any? do |seq|
-      return true if seq.all? { |a| @cells[a] == symbol }
+      seq.all? { |a| @cells[a] == symbol }
     end
   end
 
@@ -47,29 +47,30 @@ class Game
     # default states
     @player1 = Human.new(@board, 'Player 1', 'X')
     @player2 = AI.new(@board, 'Evil AI', 'O')
+    @current_player = @player2
     welcome_msg
     start_screen
   end
 
   private
 
-  def start_screen(choice = gets.chomp)
-    until (1..3).include?(choice)
-      exit if choice.downcase == 'exit'
-      select_game_mode(choice.to_i)
+  def start_screen(choice = gets)
+    choice.strip!.downcase! if choice
+    until %w(1 2 3 exit).include?(choice)
+      puts 'You silly goose, try again.'
+      choice = gets.chomp.downcase
     end
+    select_game_mode(choice)
+    display_board
+    run_game
   end
 
   def select_game_mode(choice)
     case choice
-    when 1 then [@player2 = Human.new(@board, 'Player 2', 'O')]
-    when 3 then [@player1 = AI.new(@board, 'Kind AI', 'X'),
-                 @player2 = AI.new(@board, 'Evil AI', 'O')]
-    else puts 'You silly goose, try again.'
+    when '1'    then [@player2 = Human.new(@board, 'Player 2', 'O')]
+    when '3'    then [@player1 = AI.new(@board, 'Kind AI', 'X')]
+    when 'exit' then exit
     end
-    @current_player = @player2
-    display_board
-    run_game
   end
 
   def welcome_msg
@@ -89,7 +90,11 @@ class Game
       swap_players
       check_and_place
       display_board
-      display_result
+      if game_over?
+        puts display_result
+        exit
+      end
+      # display_result
     end
   end
 
@@ -104,11 +109,9 @@ class Game
 
   def display_result
     if @board.win_game?(@current_player.symbol)
-      puts "Game Over, #{@current_player.name} has won."
-      exit
+      "Game Over, #{@current_player.name} has won."
     elsif @board.full?
-      puts 'Draw.'
-      exit
+      'Draw.'
     end
   end
 
@@ -120,8 +123,8 @@ class Game
   end
 end
 
-# human players in the game
-class Human
+# players in the game
+class Player
   attr_reader :name, :symbol
 
   def initialize(board, name, symbol)
@@ -129,7 +132,10 @@ class Human
     @name = name
     @symbol = symbol
   end
+end
 
+# human players in the game
+class Human < Player
   def take_input(input = nil)
     until (1..9).include?(input) && @board.cell_open?(input)
       puts "Choose a number (1-9) to place your mark #{name}."
@@ -163,82 +169,45 @@ class Human
 end
 
 # AI players in the game
-class AI
-  attr_reader :name, :symbol, :board
-
-  def initialize(board, name, symbol)
-    @board = board
-    @name = name
-    @symbol = symbol
-  end
+class AI < Player
+  attr_reader :board
 
   def take_input
     loading_simulation
-    check_win
-    return @finished if @finished
-    check_block
-    return @finished if @finished
-    check_defaults
-    return @finished if @finished
-    # failsafe check
-    (1..9).reverse_each { |i| return i if board.cells[i - 1].nil? }
+    check_win_or_block(symbol) || check_win_or_block(other_symbol) || check_defaults
   end
 
   private
 
   # first check if possible to win before human player.
-  def check_win
-    @finished = false
-    1.upto(9) do |i|
-      origin = board.cells[i - 1]
-      board.cells[i - 1] = symbol if origin.nil?
-      # put it there if AI can win that way.
-      return @finished = i if board.win_game?(symbol)
-      board.cells[i - 1] = origin
+  def check_win_or_block(sym)
+    finished = false
+    0.upto(8) do |i|
+      origin = board.cells[i]
+      board.cells[i] = sym if origin.nil?
+      finished = i + 1 if board.win_game?(sym)
+      board.cells[i] = origin
     end
+    finished
+  end
+
+  def check_defaults
+    if board.cells[4]
+      rand < 0.51 ? possible_position(&:even?) : possible_position(&:odd?)
+    else
+      5
+    end
+  end
+
+  def possible_position(&block)
+    result = (0..8).select(&block).each do |i|
+      return i + 1 if board.cells[i].nil?
+    end
+    result.is_a?(Integer) ? result : board.cells.rindex(nil) + 1
   end
 
   def other_symbol
-    case symbol
-    when 'X' then 'O'
-    else 'X'
-    end
-  end
-
-  # if impossible to win before player,
-  # check if possible to block player from winning.
-  def check_block
-    @finished = false
-    1.upto(9) do |i|
-      origin = board.cells[i - 1]
-      board.cells[i - 1] = other_symbol if origin.nil?
-      # put it there if player can win that way.
-      return @finished = i if board.win_game?(other_symbol)
-      board.cells[i - 1] = origin
-    end
-  end
-
-  # if impossible to win nor block, default placement to center.
-  # if occupied, choose randomly between corners or sides.
-  def check_defaults
-    @finished = false
-    if board.cells[4].nil?
-      @finished = 5
-    else
-      rand < 0.51 ? possible_sides : possible_corners
-    end
-  end
-
-  def possible_sides
-    [2, 4, 6, 8].each do |i|
-      return @finished = i if board.cells[i - 1].nil?
-    end
-  end
-
-  def possible_corners
-    [1, 3, 7, 9].each do |i|
-      return @finished = i if board.cells[i - 1].nil?
-    end
+    symbol == 'X' ? 'O' : 'X'
   end
 
   def loading_simulation
