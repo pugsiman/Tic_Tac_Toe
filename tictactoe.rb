@@ -12,8 +12,8 @@ class Board
   end
 
   def as_string
-    stringed_board = @cells.map.with_index do |symbol, idx|
-      symbol || idx + 1
+    stringed_board = @cells.map.with_index(1) do |symbol, idx|
+      symbol || idx
     end
 
     stringed_board.each_slice(3).map do |row|
@@ -67,8 +67,8 @@ class Game
 
   def select_game_mode(choice)
     case choice
-    when '1'    then [@player2 = Human.new(@board, 'Player 2', 'O')]
-    when '3'    then [@player1 = AI.new(@board, 'Kind AI', 'X')]
+    when '1'    then @player2 = Human.new(@board, 'Player 2', 'O')
+    when '3'    then @player1 = AI.new(@board, 'Kind AI', 'X')
     when 'exit' then exit
     end
   end
@@ -94,7 +94,6 @@ class Game
         puts display_result
         exit
       end
-      # display_result
     end
   end
 
@@ -174,13 +173,14 @@ class AI < Player
 
   def take_input
     loading_simulation
-    check_win_or_block(symbol) || check_win_or_block(other_symbol) || check_defaults
+    win_or_block(symbol) || win_or_block(other_symbol) || check_defaults
   end
 
   private
 
   # first check if possible to win before human player.
-  def check_win_or_block(sym)
+  # if not, check if possible to block opponent from winning.
+  def win_or_block(sym)
     finished = false
     0.upto(8) do |i|
       origin = board.cells[i]
@@ -191,6 +191,8 @@ class AI < Player
     finished
   end
 
+  # default to center, if occupied, choose randomly between sides and corners.
+  # if occupied after random throw, execute reverse failsafe check.
   def check_defaults
     if board.cells[4]
       rand < 0.51 ? possible_position(&:even?) : possible_position(&:odd?)
